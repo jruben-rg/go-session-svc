@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package session;
+
+option go_package = "github.com/jruben-rg/go-session-svc/genproto/session";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+
+message Session {
+    string key = 1;
+    google.protobuf.Struct Value = 3;
+}
+
+message SetSessionRequest {
+    Session session = 1;
+}
+
+message GetSessionRequest {
+    string key = 1;
+}
+
+message GetSessionResponse {
+    Session session = 1;
+}
+
+message DeleteSessionRequest {
+    string key = 1;
+}
+
+service SessionService {
+    rpc SetSession (SetSessionRequest) returns (google.protobuf.Empty) {}
+    rpc GetSession (GetSessionRequest) returns (GetSessionResponse) {}
+    rpc DeleteSession (DeleteSessionRequest) returns (google.protobuf.Empty) {}
+}
+

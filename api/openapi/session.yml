@@ -1,0 +1,106 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Memory DB service
+  description: TODO
+  contact:
+    name: Jose Ruben Rodriguez
+    url: https://github.com/jruben-rg
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+paths:
+  /session:
+    post:
+      operationId: setSession
+      requestBody:
+        description: Request Body for Post-SetSession
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostSession'
+      responses:
+        '201':
+          description: PostSession Request has been accepted
+        '400':
+          description: PostSession Request is malformed or has missing data
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /session/{sessionId}:
+    get:
+      operationId: getSession
+      parameters:
+        - in: path
+          name: sessionId
+          schema:
+            type: string
+          required: true 
+          description: SessionId object of Get operation 
+      responses:
+        '200':
+          description: GetSession Request Body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSession'
+        '404':
+          description: Session Key was not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: deleteSession
+      parameters:
+        - in: path
+          name: sessionId
+          schema:
+            type: string
+          required: true 
+          description: SessionId object of Delete operation 
+      responses:
+        '201':
+          description: DeleteSession Request has been accepted   
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Key:
+      type: string
+
+    PostSession:
+      type: object
+      required: [sessionKey, sessionValue]
+      properties:
+        sessionKey:
+          type: string
+        sessionValue:
+          type: object
+
+    GetSession:
+      type: object
+      properties:
+        values:
+          type: object
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string

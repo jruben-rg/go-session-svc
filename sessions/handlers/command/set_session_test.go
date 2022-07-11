@@ -1,0 +1,78 @@
+package command
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/jruben-rg/go-session-svc/sessions/domain/session"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+)
+
+type TestSetRepository struct {
+	session.Repository
+	err     error
+	invoked bool
+}
+
+func (tsr *TestSetRepository) Set(ctx context.Context, key string, value interface{}) error {
+	tsr.invoked = true
+	return tsr.err
+}
+
+type TestSetSession setSessionHandler
+
+func TestSetSessionHandlerShouldInvokeSetMethod(t *testing.T) {
+	t.Parallel()
+
+	logger := logrus.NewEntry(logrus.StandardLogger())
+
+	tests := []struct {
+		scenario        string
+		expectedErr     error
+		isErrorExpected bool
+	}{
+		{
+			scenario:        "Should return error if repository returns error",
+			expectedErr:     fmt.Errorf("Repository error"),
+			isErrorExpected: true,
+		},
+		{
+			scenario:        "Should not return error if repository does not return error",
+			expectedErr:     nil,
+			isErrorExpected: false,
+		},
+	}
+
+	for _, test := range tests {
+
+		repo := &TestSetRepository{err: test.expectedErr}
+		handler := NewSetSessionHandler(repo, logger)
+		err := handler.Handle(context.Background(), SetSession{})
+
+		if test.isErrorExpected {
+			assert.NotNil(t, err, "An error is expected from the set repository")
+		} else {
+			assert.Nil(t, err, "No error is expected from the set repository")
+		}
+
+		assert.True(t, repo.invoked == true, "Set method has been invoked")
+	}
+
+}
+
+func TestSetSessionHandlerShouldPanicIfNilRepo(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Handle method did not panic")
+		}
+	}()
+
+	logger := logrus.NewEntry(logrus.StandardLogger())
+	handler := NewSetSessionHandler(nil, logger)
+	handler.Handle(context.Background(), SetSession{})
+
+}
